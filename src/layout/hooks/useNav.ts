@@ -46,10 +46,8 @@ export function useNav() {
   });
 
   /** 昵称（如果昵称为空则显示用户名） */
-  const username = computed(() => {
-    return isAllEmpty(useUserStoreHook()?.nickname)
-      ? useUserStoreHook()?.username
-      : useUserStoreHook()?.nickname;
+  const accountName = computed(() => {
+    return useUserStoreHook()?.accountName;
   });
 
   /** 设置国际化选中后的样式 */
@@ -69,7 +67,7 @@ export function useNav() {
   });
 
   const avatarsStyle = computed(() => {
-    return username.value ? { marginRight: "10px" } : "";
+    return accountName.value ? { marginRight: "10px" } : "";
   });
 
   const isCollapse = computed(() => {
@@ -165,7 +163,7 @@ export function useNav() {
     getLogo,
     isCollapse,
     pureApp,
-    username,
+    accountName,
     userAvatar,
     avatarsStyle,
     tooltipEffect,

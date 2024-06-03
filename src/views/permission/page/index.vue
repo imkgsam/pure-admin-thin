@@ -4,7 +4,7 @@ import { storageLocal } from "@pureadmin/utils";
 import { type CSSProperties, ref, computed } from "vue";
 import { useUserStoreHook } from "@/store/modules/user";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-
+import { isSuccessRes } from "@/utils/http/helper";
 defineOptions({
   name: "PermissionPage"
 });
@@ -16,7 +16,8 @@ const elStyle = computed((): CSSProperties => {
   };
 });
 
-const username = ref(useUserStoreHook()?.username);
+//将其修改为email
+const accountName = ref(useUserStoreHook()?.accountName);
 
 const options = [
   {
@@ -31,9 +32,9 @@ const options = [
 
 function onChange() {
   useUserStoreHook()
-    .loginByUsername({ username: username.value, password: "admin123" })
+    .loginByUsername({ accountName: accountName.value, password: "admin123" })
     .then(res => {
-      if (res.success) {
+      if (isSuccessRes(res)) {
         storageLocal().removeItem("async-routes");
         usePermissionStoreHook().clearAllCachePage();
         initRouter();
@@ -50,10 +51,10 @@ function onChange() {
     <el-card shadow="never" :style="elStyle">
       <template #header>
         <div class="card-header">
-          <span>当前角色：{{ username }}</span>
+          <span>当前角色：{{ accountName }}</span>
         </div>
       </template>
-      <el-select v-model="username" class="!w-[160px]" @change="onChange">
+      <el-select v-model="accountName" class="!w-[160px]" @change="onChange">
         <el-option
           v-for="item in options"
           :key="item.value"

@@ -45,3 +45,13 @@ export default class PureHttp {
     config?: PureHttpRequestConfig
   ): Promise<T>;
 }
+
+export enum StatusCodeEnum {
+  SUCCESS = "10000",
+  FAILURE = "10001",
+  RETRY = "10002",
+  INVALID_ACCESS_TOKEN = "10003"
+}
+
+type statusCodeTypeKey = keyof typeof StatusCodeEnum;
+export type statusCodeType = (typeof StatusCodeEnum)[statusCodeTypeKey];

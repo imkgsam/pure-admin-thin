@@ -1,14 +1,14 @@
 import { http } from "@/utils/http";
+import { APIProxy } from "../utils/api/proxy";
 
 export type UserResult = {
-  success: boolean;
+  statusCode: string;
+  message: string;
   data: {
     /** 头像 */
     avatar: string;
     /** 用户名 */
-    username: string;
-    /** 昵称 */
-    nickname: string;
+    accountName: string;
     /** 当前登录用户的角色 */
     roles: Array<string>;
     /** `token` */
@@ -33,11 +33,22 @@ export type RefreshTokenResult = {
 };
 
 /** 登录 */
-export const getLogin = (data?: object) => {
-  return http.request<UserResult>("post", "/login", { data });
+export const emailPass = (data?: object) => {
+  return http.request<UserResult>(
+    "post",
+    APIProxy("public/login/email/pword"),
+    { data }
+  );
 };
 
 /** 刷新`token` */
 export const refreshTokenApi = (data?: object) => {
-  return http.request<RefreshTokenResult>("post", "/refresh-token", { data });
+  return http.request<RefreshTokenResult>("post", APIProxy("token/refresh"), {
+    data
+  });
+};
+
+/** 退出登录 */
+export const remoteLogout = () => {
+  return http.request<UserResult>("delete", APIProxy("user/logout"));
 };

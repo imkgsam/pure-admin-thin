@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { isSuccessRes } from "@/utils/http/helper";
 import {
   type userType,
   store,
@@ -10,7 +11,8 @@ import {
 import {
   type UserResult,
   type RefreshTokenResult,
-  getLogin,
+  emailPass,
+  remoteLogout,
   refreshTokenApi
 } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
@@ -22,9 +24,8 @@ export const useUserStore = defineStore({
     // 头像
     avatar: storageLocal().getItem<DataInfo<number>>(userKey)?.avatar ?? "",
     // 用户名
-    username: storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "",
-    // 昵称
-    nickname: storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "",
+    accountName:
+      storageLocal().getItem<DataInfo<number>>(userKey)?.accountName ?? "",
     // 页面级别权限
     roles: storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [],
     // 是否勾选了登录页的免登录
@@ -38,12 +39,8 @@ export const useUserStore = defineStore({
       this.avatar = avatar;
     },
     /** 存储用户名 */
-    SET_USERNAME(username: string) {
-      this.username = username;
-    },
-    /** 存储昵称 */
-    SET_NICKNAME(nickname: string) {
-      this.nickname = nickname;
+    SET_ACCOUNTNAME(accountName: string) {
+      this.accountName = accountName;
     },
     /** 存储角色 */
     SET_ROLES(roles: Array<string>) {
@@ -58,21 +55,30 @@ export const useUserStore = defineStore({
       this.loginDay = Number(value);
     },
     /** 登入 */
-    async loginByUsername(data) {
+    async loginByEmailAndPass(data) {
       return new Promise<UserResult>((resolve, reject) => {
-        getLogin(data)
-          .then(data => {
-            if (data?.success) setToken(data.data);
-            resolve(data);
+        emailPass(data)
+          .then(res => {
+            if (isSuccessRes(res)) {
+              setToken(res.data);
+            }
+            resolve(res);
           })
           .catch(error => {
             reject(error);
           });
       });
     },
-    /** 前端登出（不调用接口） */
-    logOut() {
-      this.username = "";
+    async logOut() {
+      try {
+        await remoteLogout();
+      } catch (err) {
+      } finally {
+        this.locallogout();
+      }
+    },
+    locallogout() {
+      this.accountName = "";
       this.roles = [];
       removeToken();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
@@ -83,10 +89,10 @@ export const useUserStore = defineStore({
     async handRefreshToken(data) {
       return new Promise<RefreshTokenResult>((resolve, reject) => {
         refreshTokenApi(data)
-          .then(data => {
-            if (data) {
-              setToken(data.data);
-              resolve(data);
+          .then(res => {
+            if (res) {
+              setToken(res.data);
+              resolve(res);
             }
           })
           .catch(error => {

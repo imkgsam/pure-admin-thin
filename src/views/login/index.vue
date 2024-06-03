@@ -15,6 +15,7 @@ import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { ref, reactive, toRaw, onMounted, onBeforeUnmount } from "vue";
 import { useTranslationLang } from "@/layout/hooks/useTranslationLang";
 import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
+import { isSuccessRes } from "@/utils/http/helper";
 
 import dayIcon from "@/assets/svg/day.svg?component";
 import darkIcon from "@/assets/svg/dark.svg?component";
@@ -40,8 +41,8 @@ const { title, getDropdownItemStyle, getDropdownItemClass } = useNav();
 const { locale, translationCh, translationEn } = useTranslationLang();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123"
+  email: "",
+  password: ""
 });
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -50,9 +51,12 @@ const onLogin = async (formEl: FormInstance | undefined) => {
     if (valid) {
       loading.value = true;
       useUserStoreHook()
-        .loginByUsername({ username: ruleForm.username, password: "admin123" })
+        .loginByEmailAndPass({
+          email: ruleForm.email,
+          password: ruleForm.password
+        })
         .then(res => {
-          if (res.success) {
+          if (isSuccessRes(res)) {
             // 获取后端路由
             return initRouter().then(() => {
               router.push(getTopMenu(true).path).then(() => {
@@ -60,7 +64,9 @@ const onLogin = async (formEl: FormInstance | undefined) => {
               });
             });
           } else {
+            //todo: 后端传回message和statusCode，前端i18n根据statusCode显示错误提示语
             message(t("login.pureLoginFail"), { type: "error" });
+            // message(res.message, { type: "error" });
           }
         })
         .finally(() => (loading.value = false));
@@ -155,10 +161,10 @@ onBeforeUnmount(() => {
                     trigger: 'blur'
                   }
                 ]"
-                prop="username"
+                prop="email"
               >
                 <el-input
-                  v-model="ruleForm.username"
+                  v-model="ruleForm.email"
                   clearable
                   :placeholder="t('login.pureUsername')"
                   :prefix-icon="useRenderIcon(User)"
